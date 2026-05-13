@@ -19,25 +19,22 @@ function saveTask() {
     const taskToSave = new Task(title, desc, color, date, status, budget);
     console.log("Task Saved:", taskToSave);
 
-    // send to server
-    $.ajax(
-        {
-            type: "POST",
-            url: API,
-            data: JSON.stringify(taskToSave),
-            contentType: "application/json",
-            success: function(created){
-                console.log("Saved to server:", created);
-                
-                // FIX: Call displayTask here using the data the server sends back!
-                displayTask(created);
-            },
-            error: function(err){
-                console.log(err);
-                alert("Error saving task.");
-            }    
-        }
-    )
+    // 4. Send to server
+    $.ajax({
+        type: "POST",
+        url: API,
+        data: JSON.stringify(taskToSave),
+        contentType: "application/json",
+        success: function(created){
+            console.log("Saved to server:", created);
+            // Call displayTask here using the data the server sends back
+            displayTask(created);
+        },
+        error: function(err){
+            console.log(err);
+            alert("Error saving task.");
+        }    
+    });
 
     // 5. Clear the form after saving
     $("#taskForm")[0].reset();
@@ -45,7 +42,7 @@ function saveTask() {
 
 function update(){
     $.ajax({
-        type: "put",
+        type: "PUT",
         url: "https://106api-b0bnggbsgnezbzcz.westus3-01.azurewebsites.net/api/tasks/5",
         data: JSON.stringify({
             title: "this is the new title",
@@ -56,9 +53,9 @@ function update(){
             console.log(response);
         },
         error: function(err){
-            console,log(err);
+            console.log(err);
         }
-    })
+    });
 }
 
 function displayTask(task) {
@@ -81,8 +78,6 @@ function displayTask(task) {
     $("#list").append(syntax);
 }
 
-
-// Moved outside of saveTask for proper scope
 function loadTask() {
     $.ajax({
         type: "GET", 
@@ -96,9 +91,12 @@ function loadTask() {
             
             // 2. The Loop: Iterate through the array of data from the server
             for (let i = 0; i < data.length; i++) {
-                let currentTask = data[i];     // Grab the task at the current index
-                if($currentTask.name === "lyn"){
-                displayTask(currentTask);}      // Send it to the screen
+                let currentTask = data[i]; // Grab the task at the current index
+                
+                // Fixed: Removed the stray '$' from currentTask
+                if (currentTask.name === "lyn") {
+                    displayTask(currentTask); // Send it to the screen
+                }      
             }
         }, 
         error: function(err) {
@@ -125,8 +123,8 @@ function init() {
     console.log("App initialized.");
     $("#btnSave").click(saveTask);
     
-    // Optional: Load existing tasks when the app starts
-    // loadTask(); 
+    // Fixed: Uncommented to load existing tasks when the app starts
+    loadTask(); 
 }
 
 // Force the html and css gets resolved, and when finished, execute the logic

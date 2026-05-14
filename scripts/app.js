@@ -61,7 +61,7 @@ function update(){
 function displayTask(task) {
     // Create HTML syntax for the new task
     let syntax = `
-        <div class="task-item" style="border-left-color: ${task.color};">
+        <div class="task-item" id="${task.id}" style="border-left-color: ${task.color};">
             <div class="task-header">
                 <h3>${task.title}</h3>
                 <span class="task-status ${task.status.replace(/\s+/g, '-').toLowerCase()}">${task.status}</span>
@@ -71,6 +71,7 @@ function displayTask(task) {
                 <p><strong>Date:</strong> ${task.date}</p>
                 <p><strong>Budget:</strong> $${task.budget || "0.00"}</p>
             </div>
+            <button class="btn-delete"> Delete </button>
         </div>
     `;
     
@@ -119,10 +120,57 @@ function testConnection() {
     });
 }
 
+function deleteTask() {
+    // 1. Get the task element that contains the delete button that was clicked
+    let btn = $(this);
+    // 2. Get the ID of the task to delete from the DOM (assuming it's stored in a data attribute)
+    let taskElement = btn.parents(".task-item"); // Get the parent task item element
+    // 3. Get the unique ID of the task to delete
+    let id = taskElement.attr("id");
+
+    console.log("Deleting task with ID:", id);
+
+    // 4. Send a DELETE request to the server
+    $.ajax({
+        type: "DELETE",
+        url: API + "/" + id, // Assuming the API endpoint for deleting a task is /api/tasks/{id}
+        success: function(response) {
+            console.log("Task deleted successfully:", response);
+            taskElement.fadeOut(500, function() {
+                $(this).remove();
+            }); // Remove the task element from the DOM
+        },
+        error: function(err) {
+            console.error("Error deleting task:", err);
+            alert("Could not delete task.");
+        }
+    });
+
+}
+
+function filterTasks(status) {
+    if (status === "All") {
+        $(".task-item").show();
+    }else {
+        $(".task-item").hide();
+        // Show only tasks that match the selected status
+        $(".task-item").each(function() {
+            let taskStatus = $(this).find(".task-status").text();
+            if (taskStatus === status) {
+                $(this).show();
+            }
+        });
+    }
+}
+
 function init() {
     console.log("App initialized.");
     $("#btnSave").click(saveTask);
-    
+    $(".list").on("click", ".btn-delete", deleteTask); // Event delegation for dynamically created delete buttons
+    $("#btnAll").click(function() { filterTasks("All"); });
+    $("#btnDone").click(function() { filterTasks("Completed"); });
+    $("#btnTodo").click(function() { filterTasks("In Progress"); });
+
     // Fixed: Uncommented to load existing tasks when the app starts
     loadTask(); 
 }
